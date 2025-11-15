@@ -5,12 +5,17 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.Components;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
+
+    @Value("${server.forward-headers-strategy:framework}")
+    private String forwardHeadersStrategy;
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -24,7 +29,18 @@ public class SwaggerConfig {
         SecurityRequirement securityRequirement = new SecurityRequirement()
                 .addList("bearerAuth");
 
+        // Determine if we're in production (Railway uses RAILWAY_ENVIRONMENT variable)
+        String railwayEnv = System.getenv("RAILWAY_ENVIRONMENT");
+        String serverUrl = railwayEnv != null
+            ? "https://healthservicesapp-production.up.railway.app"
+            : "http://localhost:8080";
+
+        Server server = new Server()
+                .url(serverUrl)
+                .description(railwayEnv != null ? "Production server" : "Local development server");
+
         return new OpenAPI()
+                .addServersItem(server)
                 .info(new Info()
                         .title("HealthApp API")
                         .description("Healthcare Platform API - Milestone 1: Authentication")
