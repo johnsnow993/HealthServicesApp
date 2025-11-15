@@ -61,19 +61,20 @@ public class EmailService {
     @Async
     public void sendVerificationEmail(String toEmail, String token, String userRole) {
         try {
-            String frontendUrl = userRole.equals("PATIENT") ? patientFrontendUrl : doctorFrontendUrl;
-            String verificationLink = frontendUrl + "/verify-email?token=" + token;
-
             String htmlContent =
-                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
-                "<h2 style='color: #4CAF50;'>Welcome to HealthApp!</h2>" +
-                "<p>Please verify your email address by clicking the button below:</p>" +
-                "<a href='" + verificationLink + "' style='display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;'>Verify Email</a>" +
-                "<p>Or copy this link: <br/><code>" + verificationLink + "</code></p>" +
-                "<p>Verification token: <code>" + token + "</code></p>" +
-                "<p style='color: #666;'>This link will expire in 24 hours.</p>" +
-                "<p>Best regards,<br/>HealthApp Team</p>" +
-                "</div>";
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;'>" +
+                "<div style='background-color: white; padding: 30px; border-radius: 8px;'>" +
+                "<h2 style='color: #4CAF50; text-align: center;'>Welcome to HealthApp!</h2>" +
+                "<p style='font-size: 16px;'>Please verify your email address by entering the verification code below:</p>" +
+                "<div style='background-color: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 4px; text-align: center;'>" +
+                "<p style='margin: 0; color: #666; font-size: 14px;'>Your Verification Code</p>" +
+                "<p style='margin: 10px 0; font-size: 32px; font-weight: bold; color: #4CAF50; letter-spacing: 2px; font-family: monospace;'>" + token + "</p>" +
+                "</div>" +
+                "<p style='color: #666; font-size: 14px;'>Copy this code and paste it in the app to verify your account.</p>" +
+                "<p style='color: #999; font-size: 12px;'>This code will expire in 24 hours.</p>" +
+                "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+                "<p style='color: #999; font-size: 12px; text-align: center;'>Best regards,<br/>HealthApp Team</p>" +
+                "</div></div>";
 
             sendResendEmail(toEmail, "Email Verification - HealthApp", htmlContent);
             System.out.println("🔑 Verification token: " + token);
@@ -86,20 +87,21 @@ public class EmailService {
     @Async
     public void sendPasswordResetEmail(String toEmail, String token, String userRole) {
         try {
-            String frontendUrl = userRole.equals("PATIENT") ? patientFrontendUrl : doctorFrontendUrl;
-            String resetLink = frontendUrl + "/reset-password?token=" + token;
-
             String htmlContent =
-                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
-                "<h2 style='color: #FF9800;'>Password Reset Request</h2>" +
-                "<p>You requested to reset your password. Click the button below:</p>" +
-                "<a href='" + resetLink + "' style='display: inline-block; padding: 12px 24px; background-color: #FF9800; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;'>Reset Password</a>" +
-                "<p>Or copy this link: <br/><code>" + resetLink + "</code></p>" +
-                "<p>Reset token: <code>" + token + "</code></p>" +
-                "<p style='color: #666;'>This link will expire in 24 hours.</p>" +
-                "<p>If you didn't request this, please ignore this email.</p>" +
-                "<p>Best regards,<br/>HealthApp Team</p>" +
-                "</div>";
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;'>" +
+                "<div style='background-color: white; padding: 30px; border-radius: 8px;'>" +
+                "<h2 style='color: #FF9800; text-align: center;'>Password Reset Request</h2>" +
+                "<p style='font-size: 16px;'>You requested to reset your password. Use the code below to reset it:</p>" +
+                "<div style='background-color: #fff3e0; padding: 20px; margin: 20px 0; border-radius: 4px; text-align: center; border: 2px solid #FF9800;'>" +
+                "<p style='margin: 0; color: #666; font-size: 14px;'>Your Reset Code</p>" +
+                "<p style='margin: 10px 0; font-size: 32px; font-weight: bold; color: #FF9800; letter-spacing: 2px; font-family: monospace;'>" + token + "</p>" +
+                "</div>" +
+                "<p style='color: #666; font-size: 14px;'>Copy this code and paste it in the app to reset your password.</p>" +
+                "<p style='color: #999; font-size: 12px;'>This code will expire in 24 hours.</p>" +
+                "<p style='color: #d32f2f; font-size: 13px;'>⚠️ If you didn't request this, please ignore this email and your password will remain unchanged.</p>" +
+                "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+                "<p style='color: #999; font-size: 12px; text-align: center;'>Best regards,<br/>HealthApp Team</p>" +
+                "</div></div>";
 
             sendResendEmail(toEmail, "Password Reset - HealthApp", htmlContent);
             System.out.println("🔑 Reset token: " + token);
