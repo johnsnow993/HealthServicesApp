@@ -1,19 +1,25 @@
 package com.healthapp.backend.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${app.email.from}")
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
+
+    @Value("${app.email.from:onboarding@resend.dev}")
     private String fromEmail;
 
     @Value("${app.frontend.patient.url}")
@@ -22,84 +28,102 @@ public class EmailService {
     @Value("${app.frontend.doctor.url}")
     private String doctorFrontendUrl;
 
+    private void sendResendEmail(String to, String subject, String htmlContent) {
+        try {
+            if (resendApiKey == null || resendApiKey.isEmpty()) {
+                System.err.println("❌ RESEND_API_KEY not configured!");
+                return;
+            }
+
+            String url = "https://api.resend.com/emails";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
+
+            Map<String, Object> emailData = new HashMap<>();
+            emailData.put("from", fromEmail);
+            emailData.put("to", new String[]{to});
+            emailData.put("subject", subject);
+            emailData.put("html", htmlContent);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(emailData, headers);
+
+            restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+            System.out.println("✅ Email sent successfully to: " + to);
+
+        } catch (Exception e) {
+            System.err.println("❌ Failed to send email via Resend: " + e.getMessage());
+            throw e;
+        }
+    }
+
     @Async
     public void sendVerificationEmail(String toEmail, String token, String userRole) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Email Verification - HealthApp");
-
             String frontendUrl = userRole.equals("PATIENT") ? patientFrontendUrl : doctorFrontendUrl;
             String verificationLink = frontendUrl + "/verify-email?token=" + token;
 
-            message.setText(
-                    "Welcome to HealthApp!\n\n" +
-                            "Please verify your email by clicking the link below:\n" +
-                            verificationLink + "\n\n" +
-                            "Token: " + token + "\n\n" +
-                            "This link will expire in 24 hours.\n\n" +
-                            "Best regards,\nHealthApp Team"
-            );
+            String htmlContent =
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
+                "<h2 style='color: #4CAF50;'>Welcome to HealthApp!</h2>" +
+                "<p>Please verify your email address by clicking the button below:</p>" +
+                "<a href='" + verificationLink + "' style='display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;'>Verify Email</a>" +
+                "<p>Or copy this link: <br/><code>" + verificationLink + "</code></p>" +
+                "<p>Verification token: <code>" + token + "</code></p>" +
+                "<p style='color: #666;'>This link will expire in 24 hours.</p>" +
+                "<p>Best regards,<br/>HealthApp Team</p>" +
+                "</div>";
 
-            mailSender.send(message);
-            System.out.println(" Verification email sent to: " + toEmail);
-            System.out.println(" Verification token: " + token);
+            sendResendEmail(toEmail, "Email Verification - HealthApp", htmlContent);
+            System.out.println("🔑 Verification token: " + token);
         } catch (Exception e) {
-            System.err.println(" Failed to send email: " + e.getMessage());
-            System.out.println(" Verification token for " + toEmail + ": " + token);
+            System.err.println("❌ Failed to send verification email: " + e.getMessage());
+            System.out.println("🔑 Verification token for " + toEmail + ": " + token);
         }
     }
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String token, String userRole) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Password Reset - HealthApp");
-
             String frontendUrl = userRole.equals("PATIENT") ? patientFrontendUrl : doctorFrontendUrl;
             String resetLink = frontendUrl + "/reset-password?token=" + token;
 
-            message.setText(
-                    "Hello,\n\n" +
-                            "You requested to reset your password.\n" +
-                            "Click the link below:\n" +
-                            resetLink + "\n\n" +
-                            "Token: " + token + "\n\n" +
-                            "This link will expire in 24 hours.\n\n" +
-                            "Best regards,\nHealthApp Team"
-            );
+            String htmlContent =
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
+                "<h2 style='color: #FF9800;'>Password Reset Request</h2>" +
+                "<p>You requested to reset your password. Click the button below:</p>" +
+                "<a href='" + resetLink + "' style='display: inline-block; padding: 12px 24px; background-color: #FF9800; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;'>Reset Password</a>" +
+                "<p>Or copy this link: <br/><code>" + resetLink + "</code></p>" +
+                "<p>Reset token: <code>" + token + "</code></p>" +
+                "<p style='color: #666;'>This link will expire in 24 hours.</p>" +
+                "<p>If you didn't request this, please ignore this email.</p>" +
+                "<p>Best regards,<br/>HealthApp Team</p>" +
+                "</div>";
 
-            mailSender.send(message);
-            System.out.println(" Password reset email sent to: " + toEmail);
-            System.out.println(" Reset token: " + token);
+            sendResendEmail(toEmail, "Password Reset - HealthApp", htmlContent);
+            System.out.println("🔑 Reset token: " + token);
         } catch (Exception e) {
-            System.err.println(" Failed to send email: " + e.getMessage());
-            System.out.println(" Reset token for " + toEmail + ": " + token);
+            System.err.println("❌ Failed to send password reset email: " + e.getMessage());
+            System.out.println("🔑 Reset token for " + toEmail + ": " + token);
         }
     }
 
     @Async
     public void sendWelcomeEmail(String toEmail, String firstName) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Welcome to HealthApp!");
+            String htmlContent =
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
+                "<h2 style='color: #4CAF50;'>Welcome to HealthApp, " + firstName + "!</h2>" +
+                "<p>Your email has been verified successfully!</p>" +
+                "<p>You can now login to HealthApp and start using our services.</p>" +
+                "<p>Thank you for joining us!</p>" +
+                "<p>Best regards,<br/>HealthApp Team</p>" +
+                "</div>";
 
-            message.setText(
-                    "Hello " + firstName + ",\n\n" +
-                            "Your email has been verified successfully!\n\n" +
-                            "You can now login to HealthApp.\n\n" +
-                            "Best regards,\nHealthApp Team"
-            );
-
-            mailSender.send(message);
-            System.out.println(" Welcome email sent to: " + toEmail);
+            sendResendEmail(toEmail, "Welcome to HealthApp!", htmlContent);
         } catch (Exception e) {
-            System.err.println(" Failed to send welcome email: " + e.getMessage());
+            System.err.println("❌ Failed to send welcome email: " + e.getMessage());
         }
     }
 }
