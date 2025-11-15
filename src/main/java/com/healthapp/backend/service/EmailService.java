@@ -10,50 +10,49 @@ import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @Service
 public class EmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${resend.api.key:}")
-    private String resendApiKey;
+    @Value("${sendgrid.api.key:}")
+    private String sendgridApiKey;
 
-    @Value("${app.email.from:onboarding@resend.dev}")
+    @Value("${app.email.from:healthservicesbackend@gmail.com}")
     private String fromEmail;
 
-    @Value("${app.frontend.patient.url}")
-    private String patientFrontendUrl;
-
-    @Value("${app.frontend.doctor.url}")
-    private String doctorFrontendUrl;
-
-    private void sendResendEmail(String to, String subject, String htmlContent) {
+    private void sendSendGridEmail(String to, String subject, String htmlContent) {
         try {
-            if (resendApiKey == null || resendApiKey.isEmpty()) {
-                System.err.println("❌ RESEND_API_KEY not configured!");
+            if (sendgridApiKey == null || sendgridApiKey.isEmpty()) {
+                System.err.println("❌ SENDGRID_API_KEY not configured!");
                 return;
             }
 
-            String url = "https://api.resend.com/emails";
+            String url = "https://api.sendgrid.com/v3/mail/send";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(resendApiKey);
+            headers.setBearerAuth(sendgridApiKey);
+
+            Map<String, Object> personalization = new HashMap<>();
+            personalization.put("to", List.of(Map.of("email", to)));
 
             Map<String, Object> emailData = new HashMap<>();
-            emailData.put("from", fromEmail);
-            emailData.put("to", new String[]{to});
+            emailData.put("personalizations", List.of(personalization));
+            emailData.put("from", Map.of("email", fromEmail));
             emailData.put("subject", subject);
-            emailData.put("html", htmlContent);
+            emailData.put("content", List.of(Map.of("type", "text/html", "value", htmlContent)));
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(emailData, headers);
 
-            restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+            restTemplate.exchange(url, HttpMethod.POST, request, String.class);
             System.out.println("✅ Email sent successfully to: " + to);
 
         } catch (Exception e) {
-            System.err.println("❌ Failed to send email via Resend: " + e.getMessage());
+            System.err.println("❌ Failed to send email via SendGrid: " + e.getMessage());
+            e.printStackTrace();
             throw e;
         }
     }
@@ -76,7 +75,7 @@ public class EmailService {
                 "<p style='color: #999; font-size: 12px; text-align: center;'>Best regards,<br/>HealthApp Team</p>" +
                 "</div></div>";
 
-            sendResendEmail(toEmail, "Email Verification - HealthApp", htmlContent);
+            sendSendGridEmail(toEmail, "Email Verification - HealthApp", htmlContent);
             System.out.println("🔑 Verification token: " + token);
         } catch (Exception e) {
             System.err.println("❌ Failed to send verification email: " + e.getMessage());
@@ -103,7 +102,7 @@ public class EmailService {
                 "<p style='color: #999; font-size: 12px; text-align: center;'>Best regards,<br/>HealthApp Team</p>" +
                 "</div></div>";
 
-            sendResendEmail(toEmail, "Password Reset - HealthApp", htmlContent);
+            sendSendGridEmail(toEmail, "Password Reset - HealthApp", htmlContent);
             System.out.println("🔑 Reset token: " + token);
         } catch (Exception e) {
             System.err.println("❌ Failed to send password reset email: " + e.getMessage());
@@ -123,7 +122,7 @@ public class EmailService {
                 "<p>Best regards,<br/>HealthApp Team</p>" +
                 "</div>";
 
-            sendResendEmail(toEmail, "Welcome to HealthApp!", htmlContent);
+            sendSendGridEmail(toEmail, "Welcome to HealthApp!", htmlContent);
         } catch (Exception e) {
             System.err.println("❌ Failed to send welcome email: " + e.getMessage());
         }
