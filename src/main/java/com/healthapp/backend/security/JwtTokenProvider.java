@@ -44,23 +44,6 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Generates JWT token from email only (used for alternative authentication flows).
-     */
-    public String generateTokenFromEmail(String email) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
-
-        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(key)
-                .compact();
-    }
-
-    /**
      * Extracts email (subject) from JWT token.
      * Used to identify the user making authenticated requests.
      */

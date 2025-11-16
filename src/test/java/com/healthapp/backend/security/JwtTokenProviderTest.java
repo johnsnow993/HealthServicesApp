@@ -137,33 +137,6 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void testGenerateTokenFromEmail_ValidEmail_ReturnsToken() {
-        // Arrange
-        String email = "test@test.com";
-
-        // Act
-        String token = jwtTokenProvider.generateTokenFromEmail(email);
-
-        // Assert
-        assertNotNull(token);
-        assertFalse(token.isEmpty());
-        assertTrue(token.split("\\.").length == 3); // JWT has 3 parts
-    }
-
-    @Test
-    void testGenerateTokenFromEmail_ExtractEmail_ReturnsCorrectEmail() {
-        // Arrange
-        String email = "test@test.com";
-        String token = jwtTokenProvider.generateTokenFromEmail(email);
-
-        // Act
-        String extractedEmail = jwtTokenProvider.getEmailFromToken(token);
-
-        // Assert
-        assertEquals(email, extractedEmail);
-    }
-
-    @Test
     void testValidateToken_TokenWithDifferentSecret_ReturnsFalse() {
         // Arrange - Generate token with one secret
         User user = new User();
