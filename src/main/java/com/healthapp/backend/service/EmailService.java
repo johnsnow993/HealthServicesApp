@@ -12,6 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+/**
+ * Email service using SendGrid Web API for transactional emails.
+ * All methods are asynchronous (@Async) to prevent blocking API requests during email sending.
+ */
 @Service
 public class EmailService {
 
@@ -23,6 +27,10 @@ public class EmailService {
     @Value("${app.email.from:healthservicesbackend@gmail.com}")
     private String fromEmail;
 
+    /**
+     * Core method for sending emails via SendGrid Web API v3.
+     * Uses HTTP POST request with Bearer authentication instead of SMTP (Railway-compatible).
+     */
     private void sendSendGridEmail(String to, String subject, String htmlContent) {
         try {
             if (sendgridApiKey == null || sendgridApiKey.isEmpty()) {
@@ -32,10 +40,12 @@ public class EmailService {
 
             String url = "https://api.sendgrid.com/v3/mail/send";
 
+            // Set up authentication headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(sendgridApiKey);
+            headers.setBearerAuth(sendgridApiKey); // Bearer token authentication
 
+            // Build SendGrid API payload
             Map<String, Object> personalization = new HashMap<>();
             personalization.put("to", List.of(Map.of("email", to)));
 
@@ -47,6 +57,7 @@ public class EmailService {
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(emailData, headers);
 
+            // Send email via SendGrid API
             restTemplate.exchange(url, HttpMethod.POST, request, String.class);
             System.out.println("✅ Email sent successfully to: " + to);
 
@@ -57,6 +68,10 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sends email verification token to newly registered users.
+     * Email displays the token prominently for users to copy/paste (no clickable links).
+     */
     @Async
     public void sendVerificationEmail(String toEmail, String token, String userRole) {
         try {
@@ -83,6 +98,10 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sends password reset token to users who requested password reset.
+     * Token is displayed in the email for users to enter in the app.
+     */
     @Async
     public void sendPasswordResetEmail(String toEmail, String token, String userRole) {
         try {
@@ -110,6 +129,10 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sends welcome email after successful email verification.
+     * Confirms that the account is now active and ready to use.
+     */
     @Async
     public void sendWelcomeEmail(String toEmail, String firstName) {
         try {

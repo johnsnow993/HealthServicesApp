@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Medical history entity for storing patient health questionnaires.
+ * Uses flexible JSONB storage to allow any custom question-answer structure defined by patients.
+ */
 @Entity
 @Table(name = "medical_history")
 @Data
@@ -26,16 +30,16 @@ public class MedicalHistory {
 
     @OneToOne
     @JoinColumn(name = "patient_id", nullable = false, unique = true)
-    private Patient patient;
+    private Patient patient; // One-to-one relationship with Patient
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Map<String, Object> questionnaireJson;
+    private Map<String, Object> questionnaireJson; // Flexible JSON structure - patients can define any Q&A format
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // Automatically set on creation
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; // Automatically updated on modification
 }

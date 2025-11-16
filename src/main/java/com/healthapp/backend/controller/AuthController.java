@@ -10,6 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for authentication operations.
+ * Handles user registration, email verification, login, password reset, and logout.
+ * All endpoints under /api/auth/** are publicly accessible (no authentication required).
+ */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

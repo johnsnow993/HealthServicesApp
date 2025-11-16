@@ -10,6 +10,10 @@ import org.hibernate.type.SqlTypes;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Doctor profile entity storing professional credentials and practice information.
+ * Requires admin approval before being active on the platform (approved field must be true).
+ */
 @Entity
 @Table(name = "doctors")
 @Data
@@ -23,7 +27,7 @@ public class Doctor {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    private User user; // Reference to authentication user entity
 
     @Column(nullable = false)
     private String firstName;
@@ -35,32 +39,32 @@ public class Doctor {
     private String phone;
 
     @Column(nullable = false)
-    private String gender;
+    private String gender; // Male, Female, or Other
 
     @Column(columnDefinition = "TEXT")
-    private String profilePhotoBase64;
+    private String profilePhotoBase64; // Base64-encoded image stored directly in database
 
     @Column(nullable = false, unique = true)
-    private String licenseNumber;
+    private String licenseNumber; // Medical license number - must be unique for verification
 
     @Column(nullable = false)
-    private String specialization;
+    private String specialization; // E.g., Cardiology, Dermatology, General Practice
 
-    private Integer experience;
+    private Integer experience; // Years of professional medical experience
 
     @Column(columnDefinition = "TEXT")
-    private String education;
+    private String education; // Degrees, certifications, medical school attended
 
     @Column(length = 500)
-    private String bio;
+    private String bio; // Professional biography (max 500 characters)
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<String> languages;
+    private List<String> languages; // Languages spoken - stored as JSONB array in PostgreSQL
 
     @Column(columnDefinition = "TEXT")
-    private String clinicAddress;
+    private String clinicAddress; // Physical address of practice location
 
     @Column(nullable = false)
-    private Boolean approved = false;
+    private Boolean approved = false; // Admin approval status - doctor cannot practice until approved
 }

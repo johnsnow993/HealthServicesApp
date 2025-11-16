@@ -11,12 +11,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Swagger/OpenAPI configuration for API documentation.
+ * Auto-detects Railway production environment and configures HTTPS server URL.
+ * Accessible at /swagger-ui/index.html
+ */
 @Configuration
 public class SwaggerConfig {
 
     @Value("${server.forward-headers-strategy:framework}")
     private String forwardHeadersStrategy;
 
+    /**
+     * Configures OpenAPI documentation with JWT Bearer authentication scheme.
+     * Automatically uses HTTPS in production (Railway) and HTTP in local development.
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         SecurityScheme securityScheme = new SecurityScheme()

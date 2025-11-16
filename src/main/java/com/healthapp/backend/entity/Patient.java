@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * Patient profile entity storing personal and medical information.
+ * Associated with a User entity in a one-to-one relationship for authentication purposes.
+ */
 @Entity
 @Table(name = "patients")
 @Data
@@ -21,7 +25,7 @@ public class Patient {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    private User user; // Reference to authentication user entity
 
     @Column(nullable = false)
     private String firstName;
@@ -30,7 +34,7 @@ public class Patient {
     private String lastName;
 
     @Column(nullable = false)
-    private LocalDate dob;
+    private LocalDate dob; // Date of birth for age calculation and verification
 
     @Column(nullable = false)
     private String phone;
@@ -39,11 +43,11 @@ public class Patient {
     private String address;
 
     @Column(nullable = false)
-    private String gender;
+    private String gender; // Male, Female, or Other
 
     @Column(columnDefinition = "TEXT")
-    private String profilePhotoBase64;
+    private String profilePhotoBase64; // Base64-encoded image stored directly in database
 
     @Column(columnDefinition = "TEXT")
-    private String insuranceInfo;
+    private String insuranceInfo; // Optional insurance provider and policy details
 }

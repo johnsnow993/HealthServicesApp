@@ -12,17 +12,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
+/**
+ * Spring Security UserDetails implementation for authentication and authorization.
+ * Wraps User entity and provides role-based authorities for access control.
+ */
 @Data
 @AllArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
     private UUID id;
-    private String email;
-    private String password;
-    private Role role;
-    private Boolean verified;
-    private Collection<? extends GrantedAuthority> authorities;
+    private String email; // Used as username in Spring Security
+    private String password; // bcrypt hashed password
+    private Role role; // PATIENT, DOCTOR, or ADMIN
+    private Boolean verified; // Controls isEnabled() - unverified users cannot login
+    private Collection<? extends GrantedAuthority> authorities; // Spring Security authorities
 
+    /**
+     * Factory method to build UserDetailsImpl from User entity.
+     * Converts Role enum to Spring Security GrantedAuthority with "ROLE_" prefix.
+     */
     public static UserDetailsImpl build(User user) {
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
 
@@ -68,6 +76,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return verified;
+        return verified; // Only verified users can login - enforces email verification requirement
     }
 }
