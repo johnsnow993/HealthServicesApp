@@ -1,0 +1,10 @@
+target/
+!target/backend-0.0.1-SNAPSHOT.jar
+.git/
+.gitignore
+*.md
+.DS_Store
+.idea/
+*.iml
+.vscode/
+node_modules/
